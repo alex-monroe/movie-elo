@@ -1,6 +1,6 @@
-# MovElo
+# Prefelo
 
-MovElo helps you build a personal movie ranking by comparing films head-to-head. The homepage now includes Supabase powered
+Prefelo helps you build a personal movie ranking by comparing films head-to-head. The homepage now includes Supabase powered
 registration and login so you can save progress across devices.
 
 ## Prerequisites
