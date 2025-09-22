@@ -40,7 +40,7 @@ const fetchMovies = async () => {
   const movieItemTypeId = await getMovieItemTypeId();
 
   const { data, error } = await supabaseAdminClient
-    .from<MovieRow>('rankable_items')
+    .from('rankable_items')
     .select('id, name, image_path, metadata')
     .eq('item_type_id', movieItemTypeId)
     .order('name', { ascending: true });
@@ -49,7 +49,7 @@ const fetchMovies = async () => {
     throw error;
   }
 
-  return data ?? [];
+  return (data ?? []) as MovieRow[];
 };
 
 export default async function MoviesPage() {
