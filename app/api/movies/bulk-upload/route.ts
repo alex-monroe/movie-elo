@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Papa, { ParseError } from 'papaparse';
 
 import { supabaseAdminClient } from '@/lib/supabaseAdminClient';
+import { getMovieItemTypeId } from '@/lib/itemTypes';
 
 type CsvRow = Record<string, string | undefined>;
 
@@ -122,37 +123,6 @@ const fetchTmdbMovie = async (name: string, year: number | undefined, apiKey: st
   const [match] = payload.results ?? [];
 
   return match ?? null;
-};
-
-const getMovieItemTypeId = async (): Promise<number> => {
-  const { data: existingType, error: existingError } = await supabaseAdminClient
-    .from('item_types')
-    .select('id')
-    .eq('slug', 'movie')
-    .maybeSingle();
-
-  if (existingError) {
-    throw existingError;
-  }
-
-  if (existingType) {
-    return existingType.id;
-  }
-
-  const { data: insertedType, error: insertError } = await supabaseAdminClient
-    .from('item_types')
-    .upsert({
-      name: 'Movie',
-      slug: 'movie',
-    }, { onConflict: 'slug' })
-    .select('id')
-    .single();
-
-  if (insertError) {
-    throw insertError;
-  }
-
-  return insertedType.id;
 };
 
 export async function POST(request: NextRequest) {
