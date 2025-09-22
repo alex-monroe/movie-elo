@@ -4,6 +4,8 @@ import { FormEvent, useEffect, useState } from 'react';
 
 import { supabase } from '@/lib/supabaseClient';
 
+import MovieCsvUpload from './MovieCsvUpload';
+
 type AuthView = 'sign-in' | 'sign-up';
 
 const AuthForm = () => {
@@ -105,20 +107,27 @@ const AuthForm = () => {
 
   if (userEmail) {
     return (
-      <div className="w-full max-w-md rounded-lg bg-gray-800 p-6 shadow-lg">
-        <h2 className="text-2xl font-semibold text-white">You're signed in!</h2>
-        <p className="mt-2 text-sm text-gray-300">
-          Currently logged in as <span className="font-medium text-white">{userEmail}</span>.
-        </p>
-        {message && <p className="mt-4 text-sm text-green-400">{message}</p>}
-        {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
-        <button
-          onClick={handleSignOut}
-          disabled={loading}
-          className="mt-6 w-full rounded bg-red-500 px-4 py-2 font-semibold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {loading ? 'Signing out...' : 'Sign out'}
-        </button>
+      <div className="w-full max-w-3xl rounded-lg bg-gray-800 p-6 shadow-lg">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold text-white">You're signed in!</h2>
+              <p className="mt-1 text-sm text-gray-300">
+                Logged in as <span className="font-medium text-white">{userEmail}</span>.
+              </p>
+            </div>
+            <button
+              onClick={handleSignOut}
+              disabled={loading}
+              className="inline-flex justify-center rounded bg-red-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? 'Signing out…' : 'Sign out'}
+            </button>
+          </div>
+          {message && <p className="text-sm text-green-400">{message}</p>}
+          {error && <p className="text-sm text-red-400">{error}</p>}
+          <MovieCsvUpload />
+        </div>
       </div>
     );
   }
