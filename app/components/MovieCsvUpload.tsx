@@ -1,6 +1,8 @@
 'use client';
 
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
+
+import { supabase } from '@/lib/supabaseClient';
 
 type UploadSummary = {
   totalRows: number;
@@ -36,6 +38,12 @@ type UploadParseWarning = {
   row?: number;
 };
 
+type UploadGroup = {
+  id: string;
+  name: string;
+  movieCount: number;
+};
+
 type UploadResponse = {
   summary: UploadSummary;
   inserted: UploadInserted[];
@@ -43,6 +51,8 @@ type UploadResponse = {
   errors: UploadError[];
   parseWarnings: UploadParseWarning[];
   error?: string;
+  group?: UploadGroup;
+  groupError?: string;
 };
 
 const MovieCsvUpload = () => {
@@ -50,6 +60,37 @@ const MovieCsvUpload = () => {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<UploadResponse | null>(null);
+  const [createGroup, setCreateGroup] = useState(false);
+  const [groupName, setGroupName] = useState('');
+  const [groupDescription, setGroupDescription] = useState('');
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const syncSession = async () => {
+      const { data } = await supabase.auth.getSession();
+
+      if (!isMounted) {
+        return;
+      }
+
+      setAccessToken(data.session?.access_token ?? null);
+    };
+
+    syncSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAccessToken(session?.access_token ?? null);
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -57,6 +98,18 @@ const MovieCsvUpload = () => {
     if (!file) {
       setError('Choose a CSV file before uploading.');
       return;
+    }
+
+    if (createGroup) {
+      if (!groupName.trim()) {
+        setError('Enter a name for the ranking group.');
+        return;
+      }
+
+      if (!accessToken) {
+        setError('You must be signed in to create a ranking group.');
+        return;
+      }
     }
 
     setUploading(true);
@@ -67,9 +120,22 @@ const MovieCsvUpload = () => {
       const formData = new FormData();
       formData.append('file', file);
 
+      if (createGroup) {
+        formData.append('createGroup', 'true');
+        formData.append('groupName', groupName.trim());
+
+        if (groupDescription.trim()) {
+          formData.append('groupDescription', groupDescription.trim());
+        }
+      }
+
+      const headers: HeadersInit | undefined =
+        createGroup && accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined;
+
       const response = await fetch('/api/movies/bulk-upload', {
         method: 'POST',
         body: formData,
+        headers,
       });
 
       const payload = (await response.json()) as UploadResponse;
@@ -97,7 +163,9 @@ const MovieCsvUpload = () => {
       result.inserted.length > 0 ||
       result.skipped.length > 0 ||
       result.errors.length > 0 ||
-      result.parseWarnings.length > 0
+      result.parseWarnings.length > 0 ||
+      Boolean(result.group) ||
+      Boolean(result.groupError)
     );
   }, [result]);
 
@@ -126,6 +194,58 @@ const MovieCsvUpload = () => {
             }}
             className="mt-1 block w-full cursor-pointer rounded-md border border-gray-700 bg-gray-900 px-3 py-2 text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
           />
+        </div>
+        <div className="rounded-md border border-gray-700 bg-gray-900 p-4">
+          <label className="flex items-start gap-3">
+            <input
+              type="checkbox"
+              className="mt-1 h-4 w-4 rounded border-gray-600 bg-gray-800 text-blue-500 focus:ring-blue-500"
+              checked={createGroup}
+              disabled={uploading}
+              onChange={(event) => {
+                setCreateGroup(event.target.checked);
+              }}
+            />
+            <span className="text-sm text-gray-200">
+              Create a ranking group with the uploaded movies
+              <span className="block text-xs text-gray-400">
+                We'll include any titles that were added or already existed in your library.
+              </span>
+            </span>
+          </label>
+          {createGroup && (
+            <div className="mt-4 space-y-4">
+              <div>
+                <label htmlFor="group-name" className="block text-sm font-medium text-gray-300">
+                  Group name
+                </label>
+                <input
+                  id="group-name"
+                  type="text"
+                  value={groupName}
+                  disabled={uploading}
+                  onChange={(event) => setGroupName(event.target.value)}
+                  placeholder="Summer Movie Marathon"
+                  className="mt-1 block w-full rounded-md border border-gray-700 bg-gray-950 px-3 py-2 text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="group-description" className="block text-sm font-medium text-gray-300">
+                  Description <span className="text-gray-500">(optional)</span>
+                </label>
+                <textarea
+                  id="group-description"
+                  value={groupDescription}
+                  disabled={uploading}
+                  onChange={(event) => setGroupDescription(event.target.value)}
+                  placeholder="Invite friends to rank the films from this upload."
+                  rows={3}
+                  className="mt-1 block w-full rounded-md border border-gray-700 bg-gray-950 px-3 py-2 text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+                />
+              </div>
+            </div>
+          )}
         </div>
         {error && <p className="text-sm text-red-400">{error}</p>}
         <button
@@ -158,6 +278,20 @@ const MovieCsvUpload = () => {
               <dd>{result.summary.errorCount}</dd>
             </div>
           </dl>
+
+          {result.group && (
+            <div className="mt-4 rounded-md border border-green-500/40 bg-green-500/10 p-4 text-sm text-green-200">
+              <p className="text-base font-semibold text-green-100">Ranking group created</p>
+              <p className="mt-1">
+                <span className="font-medium">{result.group.name}</span> now includes {result.group.movieCount} movie
+                {result.group.movieCount === 1 ? '' : 's'}. Share the group ID{' '}
+                <span className="font-mono text-green-100">{result.group.id}</span> to start ranking.
+              </p>
+            </div>
+          )}
+          {result.groupError && (
+            <p className="mt-4 text-sm text-amber-300">{result.groupError}</p>
+          )}
 
           {hasDetails && (
             <div className="mt-4 space-y-4 text-sm text-gray-300">

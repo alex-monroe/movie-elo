@@ -125,6 +125,22 @@ const fetchTmdbMovie = async (name: string, year: number | undefined, apiKey: st
   return match ?? null;
 };
 
+const normalizeItemId = (value: unknown): number | null => {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return Math.trunc(value);
+  }
+
+  if (typeof value === 'string' && value.trim() !== '') {
+    const parsed = Number.parseInt(value, 10);
+
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+
+  return null;
+};
+
 export async function POST(request: NextRequest) {
   try {
     const tmdbApiKey = process.env.TMDB_API_KEY;
@@ -138,6 +154,60 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
     const file = formData.get('file');
+    const createGroupFlag = formData.get('createGroup');
+    const shouldCreateGroup =
+      typeof createGroupFlag === 'string' && createGroupFlag.toLowerCase() === 'true';
+
+    let groupName: string | null = null;
+    let groupDescription: string | null = null;
+    let groupCreatorId: string | null = null;
+
+    if (shouldCreateGroup) {
+      const rawGroupName = formData.get('groupName');
+      const rawDescription = formData.get('groupDescription');
+
+      if (typeof rawGroupName !== 'string' || rawGroupName.trim().length === 0) {
+        return NextResponse.json(
+          { error: 'Provide a group name to create a ranking group.' },
+          { status: 400 }
+        );
+      }
+
+      groupName = rawGroupName.trim();
+      groupDescription =
+        typeof rawDescription === 'string' && rawDescription.trim().length > 0
+          ? rawDescription.trim()
+          : null;
+
+      const authorization = request.headers.get('authorization') ?? request.headers.get('Authorization');
+
+      if (!authorization || !authorization.toLowerCase().startsWith('bearer ')) {
+        return NextResponse.json(
+          { error: 'Authorization token is required to create a ranking group.' },
+          { status: 401 }
+        );
+      }
+
+      const token = authorization.slice('bearer '.length).trim();
+
+      if (!token) {
+        return NextResponse.json(
+          { error: 'Authorization token is required to create a ranking group.' },
+          { status: 401 }
+        );
+      }
+
+      const { data: userResult, error: userError } = await supabaseAdminClient.auth.getUser(token);
+
+      if (userError || !userResult?.user) {
+        return NextResponse.json(
+          { error: 'User session could not be verified for group creation.' },
+          { status: 401 }
+        );
+      }
+
+      groupCreatorId = userResult.user.id;
+    }
 
     if (!(file instanceof File)) {
       return NextResponse.json({ error: 'A CSV file is required for upload.' }, { status: 400 });
@@ -172,6 +242,7 @@ export async function POST(request: NextRequest) {
     const inserted: InsertedMovie[] = [];
     const skipped: SkippedMovie[] = [];
     const errors: UploadError[] = [];
+    const groupMovieIds = new Set<number>();
     const seenExternalIds = new Set<string>();
 
     for (let index = 0; index < rows.length; index += 1) {
@@ -232,30 +303,39 @@ export async function POST(request: NextRequest) {
             name: tmdbMovie.title ?? name,
             reason: 'Movie already exists in the library.',
           });
+          const existingId = normalizeItemId(existingMovie.id);
+
+          if (existingId) {
+            groupMovieIds.add(existingId);
+          }
           continue;
         }
 
-        const { error: insertError } = await supabaseAdminClient.from('rankable_items').insert({
-          item_type_id: movieItemTypeId,
-          external_id: externalId,
-          name: tmdbMovie.title ?? name,
-          image_path: tmdbMovie.poster_path ?? null,
-          metadata: {
-            source: 'csv-upload',
-            csv: {
-              providedName: name,
-              providedYear: yearValue ?? null,
-              providedDate: csvDate ?? null,
+        const { data: insertedMovie, error: insertError } = await supabaseAdminClient
+          .from('rankable_items')
+          .insert({
+            item_type_id: movieItemTypeId,
+            external_id: externalId,
+            name: tmdbMovie.title ?? name,
+            image_path: tmdbMovie.poster_path ?? null,
+            metadata: {
+              source: 'csv-upload',
+              csv: {
+                providedName: name,
+                providedYear: yearValue ?? null,
+                providedDate: csvDate ?? null,
+              },
+              tmdb: {
+                id: tmdbMovie.id,
+                title: tmdbMovie.title ?? null,
+                original_title: tmdbMovie.original_title ?? null,
+                release_date: tmdbMovie.release_date ?? null,
+                poster_path: tmdbMovie.poster_path ?? null,
+              },
             },
-            tmdb: {
-              id: tmdbMovie.id,
-              title: tmdbMovie.title ?? null,
-              original_title: tmdbMovie.original_title ?? null,
-              release_date: tmdbMovie.release_date ?? null,
-              poster_path: tmdbMovie.poster_path ?? null,
-            },
-          },
-        });
+          })
+          .select('id')
+          .single();
 
         if (insertError) {
           if ('code' in insertError && insertError.code === '23505') {
@@ -264,6 +344,21 @@ export async function POST(request: NextRequest) {
               name: tmdbMovie.title ?? name,
               reason: 'Movie already exists in the library.',
             });
+
+            const { data: existingRecord, error: fetchExistingError } = await supabaseAdminClient
+              .from('rankable_items')
+              .select('id')
+              .eq('external_id', externalId)
+              .maybeSingle();
+
+            if (!fetchExistingError) {
+              const existingId = normalizeItemId(existingRecord?.id);
+
+              if (existingId) {
+                groupMovieIds.add(existingId);
+              }
+            }
+
             continue;
           }
 
@@ -271,6 +366,12 @@ export async function POST(request: NextRequest) {
         }
 
         seenExternalIds.add(externalId);
+
+        const insertedId = normalizeItemId(insertedMovie?.id);
+
+        if (insertedId) {
+          groupMovieIds.add(insertedId);
+        }
 
         inserted.push({
           rowNumber,
@@ -290,7 +391,67 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({
+    let groupResult: { id: string; name: string; movieCount: number } | null = null;
+    let groupError: string | null = null;
+
+    if (shouldCreateGroup && groupName && groupCreatorId) {
+      if (groupMovieIds.size < 2) {
+        groupError = 'At least two movies must be available to create a ranking group.';
+      } else {
+        try {
+          const { data: insertedGroup, error: insertGroupError } = await supabaseAdminClient
+            .from('ranking_groups')
+            .insert({
+              name: groupName,
+              description: groupDescription,
+              creator_id: groupCreatorId,
+              item_type_id: movieItemTypeId,
+            })
+            .select('id')
+            .single();
+
+          if (insertGroupError || !insertedGroup) {
+            throw insertGroupError ?? new Error('Group creation failed without an error message.');
+          }
+
+          const groupId = insertedGroup.id as string;
+
+          try {
+            const groupItemsPayload = Array.from(groupMovieIds).map((itemId) => ({
+              group_id: groupId,
+              item_id: itemId,
+            }));
+
+            const { error: groupItemsError } = await supabaseAdminClient
+              .from('group_items')
+              .insert(groupItemsPayload);
+
+            if (groupItemsError) {
+              throw groupItemsError;
+            }
+
+            const { error: participantError } = await supabaseAdminClient
+              .from('group_participants')
+              .upsert({ group_id: groupId, user_id: groupCreatorId }, { onConflict: 'user_id,group_id' });
+
+            if (participantError) {
+              throw participantError;
+            }
+
+            groupResult = { id: groupId, name: groupName, movieCount: groupMovieIds.size };
+          } catch (groupCreationStepError) {
+            await supabaseAdminClient.from('group_items').delete().eq('group_id', groupId);
+            await supabaseAdminClient.from('ranking_groups').delete().eq('id', groupId);
+            throw groupCreationStepError;
+          }
+        } catch (creationError) {
+          console.error('Failed to create ranking group from CSV upload:', creationError);
+          groupError = 'Failed to create a ranking group from the uploaded movies.';
+        }
+      }
+    }
+
+    const responsePayload: Record<string, unknown> = {
       summary: {
         totalRows: rows.length,
         insertedCount: inserted.length,
@@ -301,7 +462,17 @@ export async function POST(request: NextRequest) {
       skipped,
       errors,
       parseWarnings,
-    });
+    };
+
+    if (groupResult) {
+      responsePayload.group = groupResult;
+    }
+
+    if (groupError) {
+      responsePayload.groupError = groupError;
+    }
+
+    return NextResponse.json(responsePayload);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error occurred.';
 
