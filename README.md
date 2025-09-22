@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MovElo
 
-## Getting Started
+MovElo helps you build a personal movie ranking by comparing films head-to-head. The homepage now includes Supabase powered
+registration and login so you can save progress across devices.
 
-First, run the development server:
+## Prerequisites
+
+- Node.js 18 or newer
+- A [Supabase](https://supabase.com/) project with email authentication enabled
+
+## Installation
+
+```bash
+npm install
+```
+
+## Environment variables
+
+Create a `.env.local` file in the project root with the credentials from your Supabase project:
+
+```bash
+NEXT_PUBLIC_MOVIES_ELOSUPABASE_URL=your-project-url
+NEXT_PUBLIC_MOVIES_ELOSUPABASE_ANON_KEY=your-anon-key
+```
+
+- You can find these values in **Project Settings → API** within the Supabase dashboard.
+- Legacy setups that already define `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` will continue to work.
+- Ensure **Email** is enabled under **Authentication → Providers** so users can receive confirmation links.
+
+## Running the project
+
+Start the local development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then open [http://localhost:3000](http://localhost:3000) to interact with the sign-up and login flow. When users create an
+account, they will be prompted to confirm their email (if email confirmation is required in your Supabase settings). Once
+confirmed, the session is persisted and the user can sign out from the homepage.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Production build
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+To ensure the application builds successfully, run:
 
-## Learn More
+```bash
+npm run build
+```
 
-To learn more about Next.js, take a look at the following resources:
+After building, you can launch the production server with:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm start
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Additional notes
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Keep your Supabase keys private—never commit `.env.local` to version control.
+- If you update authentication settings (such as enabling social providers), the homepage form will work automatically with
+  those providers as long as they are enabled in Supabase.

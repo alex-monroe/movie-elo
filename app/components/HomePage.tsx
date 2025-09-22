@@ -1,15 +1,23 @@
 import React from 'react';
 
+import AuthForm from './AuthForm';
+
 const HomePage = () => {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
-      <h1 className="text-5xl font-bold mb-4">Welcome to MovElo</h1>
-      <p className="text-xl mb-8 text-center max-w-2xl">
-        MovElo is an app where you can compare your favorite movies to each other to come up with your personal definitive movie rankings.
-      </p>
-      <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-        Get Started
-      </button>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-900 px-4 text-white">
+      <div className="flex w-full max-w-5xl flex-col items-center gap-10 md:flex-row md:items-start md:justify-between">
+        <div className="max-w-2xl text-center md:text-left">
+          <h1 className="text-5xl font-bold md:text-6xl">Welcome to MovElo</h1>
+          <p className="mt-4 text-lg text-gray-200 md:text-xl">
+            MovElo is your personal movie ranking companion. Compare your favorite films to build a definitive list that reflects
+            your taste.
+          </p>
+          <p className="mt-4 text-base text-gray-300">
+            Create an account or sign in to start saving your match-ups and track how your rankings change over time.
+          </p>
+        </div>
+        <AuthForm />
+      </div>
     </div>
   );
 };
