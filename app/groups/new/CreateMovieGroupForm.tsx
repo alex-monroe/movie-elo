@@ -134,9 +134,17 @@ const CreateMovieGroupForm = ({ movies }: CreateMovieGroupFormProps) => {
 
       const createdMovieCount = payload.movieCount ?? selectedMovies.size;
 
+      const comparisonHint =
+        payload.groupId && payload.groupId.trim().length > 0
+          ? ` Visit the new ranking page at /groups/${payload.groupId} to start comparing.`
+          : '';
+
+      const displayGroupId = payload.groupId ?? 'unknown';
+
       setSuccessMessage(
         `Group created successfully with ${createdMovieCount} movie${createdMovieCount === 1 ? '' : 's'}. Save the ID ` +
-          `(${payload.groupId}) to reference it later.`
+          `(${displayGroupId}) to reference it later.` +
+          comparisonHint
       );
       setGroupName('');
       setGroupDescription('');

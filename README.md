@@ -45,6 +45,15 @@ application:
 Each upload returns a summary of movies that were added, skipped (missing data, no TMDb match, or duplicates), and any
 errors encountered while contacting TMDb or Supabase.
 
+## Head-to-head rankings
+
+1. Create a ranking group from `/groups/new` and note the group ID that is returned.
+2. Apply the migration at `supabase/migrations/20250211000001_create_movie_comparison_function.sql` to your database so
+   match results can be processed.
+3. Visit `/groups/<group-id>` (for example, `/groups/123e4567-e89b-12d3-a456-426614174000`) to load the new comparison
+   interface.
+4. Sign in and repeatedly pick your preferred movie in each matchup. The backend updates Elo ratings after every choice.
+
 ## Running the project
 
 Start the local development server:
