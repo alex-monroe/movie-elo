@@ -19,11 +19,12 @@ npm install
 Create a `.env.local` file in the project root with the credentials from your Supabase project:
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=your-project-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+NEXT_PUBLIC_MOVIES_ELOSUPABASE_URL=your-project-url
+NEXT_PUBLIC_MOVIES_ELOSUPABASE_ANON_KEY=your-anon-key
 ```
 
 - You can find these values in **Project Settings → API** within the Supabase dashboard.
+- Legacy setups that already define `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` will continue to work.
 - Ensure **Email** is enabled under **Authentication → Providers** so users can receive confirmation links.
 
 ## Running the project
