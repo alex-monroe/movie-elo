@@ -23,6 +23,57 @@ type MatchupItemResponse = {
   comparisonCount: number;
 };
 
+type RawRankableItem = {
+  id?: unknown;
+  name?: unknown;
+  image_path?: unknown;
+};
+
+const parseRankableItem = (value: unknown): { id: number; name: string; imagePath: string | null } | null => {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+
+  const candidate = value as RawRankableItem;
+
+  const idValue = candidate.id;
+  let id: number | null = null;
+
+  if (typeof idValue === 'number' && Number.isFinite(idValue)) {
+    id = idValue;
+  } else if (typeof idValue === 'string') {
+    const parsed = Number.parseInt(idValue, 10);
+    if (Number.isFinite(parsed)) {
+      id = parsed;
+    }
+  }
+
+  if (id === null) {
+    return null;
+  }
+
+  if (typeof candidate.name !== 'string') {
+    return null;
+  }
+
+  const nameValue = candidate.name.trim();
+
+  if (!nameValue) {
+    return null;
+  }
+
+  const imagePath =
+    typeof candidate.image_path === 'string' && candidate.image_path.trim().length > 0
+      ? candidate.image_path
+      : null;
+
+  return {
+    id,
+    name: nameValue,
+    imagePath,
+  };
+};
+
 const extractBearerToken = (request: Request): string | null => {
   const authorization = request.headers.get('authorization') ?? request.headers.get('Authorization');
 
@@ -153,17 +204,14 @@ export async function GET(request: Request) {
     const mappedItems: { id: number; name: string; imagePath: string | null }[] = [];
 
     for (const row of groupItems ?? []) {
-      const item = row.rankable_items as { id: number; name: string; image_path: string | null } | null;
+      const rawItem = Array.isArray(row?.rankable_items) ? row?.rankable_items?.[0] : row?.rankable_items;
+      const parsed = parseRankableItem(rawItem);
 
-      if (!item) {
+      if (!parsed) {
         continue;
       }
 
-      mappedItems.push({
-        id: item.id,
-        name: item.name,
-        imagePath: item.image_path ?? null,
-      });
+      mappedItems.push(parsed);
     }
 
     if (mappedItems.length < 2) {
