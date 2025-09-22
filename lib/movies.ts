@@ -1,34 +1,12 @@
-import { supabaseAdminClient } from './supabaseAdminClient';
+import { MOVIE_POSTER_SIZE, parseMovieReleaseYear } from './movieMetadata';
 import { getMovieItemTypeId } from './itemTypes';
-
-export const MOVIE_POSTER_SIZE = 'w342';
+import { supabaseAdminClient } from './supabaseAdminClient';
 
 export type MovieRecord = {
   id: number;
   name: string;
   image_path: string | null;
   metadata: Record<string, unknown> | null;
-};
-
-export const parseMovieReleaseYear = (metadata: unknown): string | null => {
-  if (!metadata || typeof metadata !== 'object') {
-    return null;
-  }
-
-  const typedMetadata = metadata as {
-    tmdb?: { release_date?: string | null };
-    release_date?: string | null;
-    releaseDate?: string | null;
-  };
-
-  const releaseDate =
-    typedMetadata.tmdb?.release_date ?? typedMetadata.release_date ?? typedMetadata.releaseDate;
-
-  if (typeof releaseDate !== 'string' || releaseDate.length < 4) {
-    return null;
-  }
-
-  return releaseDate.slice(0, 4);
 };
 
 export const fetchMovieRecords = async (): Promise<MovieRecord[]> => {
@@ -46,3 +24,5 @@ export const fetchMovieRecords = async (): Promise<MovieRecord[]> => {
 
   return (data ?? []) as MovieRecord[];
 };
+
+export { MOVIE_POSTER_SIZE, parseMovieReleaseYear };
