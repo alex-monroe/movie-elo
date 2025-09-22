@@ -2,7 +2,8 @@ import NavigationBar from '@/app/components/NavigationBar';
 
 import CreateMovieGroupForm from './CreateMovieGroupForm';
 
-import { MOVIE_POSTER_SIZE, fetchMovieRecords, parseMovieReleaseYear } from '@/lib/movies';
+import { fetchMovieRecords, parseMovieReleaseYear } from '@/lib/movies';
+import { MOVIE_POSTER_SIZE } from '@/lib/moviePresentation';
 import { buildPosterUrl, getTmdbConfiguration } from '@/lib/tmdb';
 
 export const revalidate = 0;

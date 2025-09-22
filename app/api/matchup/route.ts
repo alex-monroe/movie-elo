@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-import { MOVIE_POSTER_SIZE } from '@/lib/movies';
+import { MOVIE_POSTER_SIZE } from '@/lib/moviePresentation';
 import { supabaseAdminClient } from '@/lib/supabaseAdminClient';
 import { buildPosterUrl, getTmdbConfiguration } from '@/lib/tmdb';
 
