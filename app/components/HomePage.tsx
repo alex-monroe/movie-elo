@@ -1,17 +1,42 @@
-import React from 'react';
+import { createClient } from '@/lib/supabase/server'
+import LogoutButton from './LogoutButton'
+import Link from 'next/link'
 
-const HomePage = () => {
+export default async function HomePage() {
+  const supabase = createClient()
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white">
-      <h1 className="text-5xl font-bold mb-4">Welcome to MovElo</h1>
-      <p className="text-xl mb-8 text-center max-w-2xl">
-        MovElo is an app where you can compare your favorite movies to each other to come up with your personal definitive movie rankings.
-      </p>
-      <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-        Get Started
-      </button>
+    <div className="text-white">
+      <header className="flex justify-between items-center p-4">
+        <h1 className="text-2xl font-bold">MovieELO</h1>
+        <div className="flex gap-4">
+          {session ? (
+            <LogoutButton />
+          ) : (
+            <>
+              <Link href="/login" className="bg-green-500 px-4 py-2 rounded">
+                Login
+              </Link>
+              <Link href="/signup" className="bg-blue-500 px-4 py-2 rounded">
+                Sign Up
+              </Link>
+            </>
+          )}
+        </div>
+      </header>
+      <main className="text-center p-8">
+        <h2 className="text-4xl font-bold mb-4">Welcome to MovieELO</h2>
+        <p className="text-lg mb-8">
+          The ultimate platform to rank and discover movies based on community
+          votes.
+        </p>
+        <button className="bg-yellow-500 px-8 py-4 rounded-full font-bold text-xl">
+          Start Ranking
+        </button>
+      </main>
     </div>
-  );
-};
-
-export default HomePage;
+  )
+}
