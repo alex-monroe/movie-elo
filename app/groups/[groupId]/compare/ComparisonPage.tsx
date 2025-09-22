@@ -3,6 +3,8 @@
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import NavigationBar from '@/app/components/NavigationBar';
+
 import { supabase } from '@/lib/supabaseClient';
 
 type MatchupItem = {
@@ -253,52 +255,55 @@ const ComparisonPage = ({ groupId }: ComparisonPageProps) => {
   }, [accessToken, loading, matchup, sessionChecked]);
 
   return (
-    <div className="mx-auto flex min-h-[70vh] max-w-5xl flex-col gap-8 px-6 py-10 text-white sm:py-12 lg:px-8">
-      <div>
-        <h1 className="text-3xl font-semibold sm:text-4xl">Which option do you prefer?</h1>
-        <p className="mt-2 text-sm text-gray-300 sm:text-base">{helperText}</p>
-      </div>
+    <div className="min-h-screen bg-gray-900 text-white">
+      <NavigationBar />
+      <main className="mx-auto flex min-h-[70vh] max-w-5xl flex-col gap-8 px-6 py-10 sm:py-12 lg:px-8">
+        <div>
+          <h1 className="text-3xl font-semibold sm:text-4xl">Which option do you prefer?</h1>
+          <p className="mt-2 text-sm text-gray-300 sm:text-base">{helperText}</p>
+        </div>
 
-      {error && (
-        <div className="rounded-lg border border-red-500/60 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-          {error}
-          {accessToken && (
-            <button
-              type="button"
-              onClick={handleRetry}
-              className="ml-4 inline-flex items-center gap-2 rounded-md border border-red-400/40 px-3 py-1 text-xs font-medium text-red-100 transition hover:border-red-300 hover:text-white"
-              disabled={loading}
-            >
-              Try again
-            </button>
+        {error && (
+          <div className="rounded-lg border border-red-500/60 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+            {error}
+            {accessToken && (
+              <button
+                type="button"
+                onClick={handleRetry}
+                className="ml-4 inline-flex items-center gap-2 rounded-md border border-red-400/40 px-3 py-1 text-xs font-medium text-red-100 transition hover:border-red-300 hover:text-white"
+                disabled={loading}
+              >
+                Try again
+              </button>
+            )}
+          </div>
+        )}
+
+        <div className="grid flex-1 gap-6 sm:gap-8 md:grid-cols-2">
+          {matchup?.itemA ? (
+            <ComparisonOption
+              item={matchup.itemA}
+              disabled={loading || !accessToken}
+              onSelect={() => handleChoice(matchup.itemA.id, matchup.itemB.id)}
+            />
+          ) : (
+            <div className="flex items-center justify-center rounded-xl border border-dashed border-gray-800 bg-gray-950/40 p-6 text-sm text-gray-400">
+              {loading ? 'Preparing matchup…' : 'Waiting for matchup data.'}
+            </div>
+          )}
+          {matchup?.itemB ? (
+            <ComparisonOption
+              item={matchup.itemB}
+              disabled={loading || !accessToken}
+              onSelect={() => handleChoice(matchup.itemB.id, matchup.itemA.id)}
+            />
+          ) : (
+            <div className="flex items-center justify-center rounded-xl border border-dashed border-gray-800 bg-gray-950/40 p-6 text-sm text-gray-400">
+              {loading ? 'Preparing matchup…' : 'Waiting for matchup data.'}
+            </div>
           )}
         </div>
-      )}
-
-      <div className="grid flex-1 gap-6 sm:gap-8 md:grid-cols-2">
-        {matchup?.itemA ? (
-          <ComparisonOption
-            item={matchup.itemA}
-            disabled={loading || !accessToken}
-            onSelect={() => handleChoice(matchup.itemA.id, matchup.itemB.id)}
-          />
-        ) : (
-          <div className="flex items-center justify-center rounded-xl border border-dashed border-gray-800 bg-gray-950/40 p-6 text-sm text-gray-400">
-            {loading ? 'Preparing matchup…' : 'Waiting for matchup data.'}
-          </div>
-        )}
-        {matchup?.itemB ? (
-          <ComparisonOption
-            item={matchup.itemB}
-            disabled={loading || !accessToken}
-            onSelect={() => handleChoice(matchup.itemB.id, matchup.itemA.id)}
-          />
-        ) : (
-          <div className="flex items-center justify-center rounded-xl border border-dashed border-gray-800 bg-gray-950/40 p-6 text-sm text-gray-400">
-            {loading ? 'Preparing matchup…' : 'Waiting for matchup data.'}
-          </div>
-        )}
-      </div>
+      </main>
     </div>
   );
 };

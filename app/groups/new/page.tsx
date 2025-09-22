@@ -1,3 +1,5 @@
+import NavigationBar from '@/app/components/NavigationBar';
+
 import CreateMovieGroupForm from './CreateMovieGroupForm';
 
 import { MOVIE_POSTER_SIZE, fetchMovieRecords, parseMovieReleaseYear } from '@/lib/movies';
@@ -16,8 +18,9 @@ export default async function CreateGroupPage() {
   }));
 
   return (
-    <main className="min-h-screen bg-gray-900 px-6 py-12 text-white">
-      <div className="mx-auto w-full max-w-6xl">
+    <div className="min-h-screen bg-gray-900 text-white">
+      <NavigationBar />
+      <main className="mx-auto w-full max-w-6xl px-6 py-12">
         <header className="flex flex-col gap-4 text-center sm:text-left">
           <h1 className="text-4xl font-bold sm:text-5xl">Create a movie ranking group</h1>
           <p className="text-lg text-gray-300">
@@ -27,7 +30,7 @@ export default async function CreateGroupPage() {
         </header>
 
         <CreateMovieGroupForm movies={movieOptions} />
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }
