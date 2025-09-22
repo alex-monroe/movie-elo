@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabaseClient';
 
 const NAV_LINKS = [
   { href: '/movies', label: 'Movies' },
+  { href: '/groups', label: 'Groups' },
   { href: '/groups/new', label: 'Create group' },
 ] as const;
 

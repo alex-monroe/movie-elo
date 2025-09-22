@@ -135,8 +135,8 @@ const CreateMovieGroupForm = ({ movies }: CreateMovieGroupFormProps) => {
       const createdMovieCount = payload.movieCount ?? selectedMovies.size;
 
       setSuccessMessage(
-        `Group created successfully with ${createdMovieCount} movie${createdMovieCount === 1 ? '' : 's'}. Save the ID ` +
-          `(${payload.groupId}) to reference it later.`
+        `Group created successfully with ${createdMovieCount} movie${createdMovieCount === 1 ? '' : 's'}. ` +
+          `Share the ID (${payload.groupId}) to invite friends or visit the groups page to start ranking.`
       );
       setGroupName('');
       setGroupDescription('');
