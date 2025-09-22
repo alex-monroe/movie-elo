@@ -10,9 +10,9 @@ const HomePage = () => {
       <main className="flex flex-1 items-center justify-center px-4 py-12">
         <div className="flex w-full max-w-5xl flex-col items-center gap-10 md:flex-row md:items-start md:justify-between">
           <div className="max-w-2xl text-center md:text-left">
-            <h1 className="text-5xl font-bold md:text-6xl">Welcome to MovElo</h1>
+            <h1 className="text-5xl font-bold md:text-6xl">Welcome to Prefelo</h1>
             <p className="mt-4 text-lg text-gray-200 md:text-xl">
-              MovElo is your personal movie ranking companion. Compare your favorite films to build a definitive list that
+              Prefelo is your personal movie ranking companion. Compare your favorite films to build a definitive list that
               reflects your taste.
             </p>
             <p className="mt-4 text-base text-gray-300">

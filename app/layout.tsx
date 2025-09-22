@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MovElo",
-  description: "Compare movies head-to-head and build a personal ranking.",
+  title: "Prefelo",
+  description: "Prefelo lets you compare movies head-to-head and build a personal ranking.",
 };
 
 export default function RootLayout({
