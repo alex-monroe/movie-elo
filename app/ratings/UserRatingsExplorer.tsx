@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import MoviePoster from '@/app/components/MoviePoster';
-import { MOVIE_POSTER_SIZE } from '@/lib/movies';
+import { MOVIE_POSTER_SIZE } from '@/lib/moviePresentation';
 import { supabase } from '@/lib/supabaseClient';
 import { buildPosterUrl, type TmdbConfigurationResponse } from '@/lib/tmdb';
 

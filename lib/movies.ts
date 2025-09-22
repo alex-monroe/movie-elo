@@ -1,8 +1,6 @@
 import { supabaseAdminClient } from './supabaseAdminClient';
 import { getMovieItemTypeId } from './itemTypes';
 
-export const MOVIE_POSTER_SIZE = 'w342';
-
 export type MovieRecord = {
   id: number;
   name: string;
