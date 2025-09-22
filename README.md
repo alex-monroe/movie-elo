@@ -58,3 +58,5 @@ npm start
 - Keep your Supabase keys private—never commit `.env.local` to version control.
 - If you update authentication settings (such as enabling social providers), the homepage form will work automatically with
   those providers as long as they are enabled in Supabase.
+- Database tables that store ranking metadata are documented in [docs/ranking-schema.md](docs/ranking-schema.md) along with a
+  migration script you can run against your Supabase project.
