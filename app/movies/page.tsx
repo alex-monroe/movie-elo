@@ -1,3 +1,5 @@
+import NavigationBar from '@/app/components/NavigationBar';
+
 import MoviePoster from '../components/MoviePoster';
 
 import { MOVIE_POSTER_SIZE, fetchMovieRecords, parseMovieReleaseYear } from '@/lib/movies';
@@ -15,8 +17,9 @@ export default async function MoviesPage() {
   }));
 
   return (
-    <main className="min-h-screen bg-gray-900 px-6 py-12 text-white">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
+    <div className="min-h-screen bg-gray-900 text-white">
+      <NavigationBar />
+      <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-12">
         <header className="flex flex-col gap-4 text-center sm:text-left">
           <h1 className="text-4xl font-bold sm:text-5xl">Movie Library</h1>
           <p className="text-lg text-gray-300">
@@ -51,7 +54,7 @@ export default async function MoviesPage() {
             ))}
           </ul>
         )}
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }
