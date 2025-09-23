@@ -54,7 +54,7 @@ const ComparisonOption = ({ item, disabled, onSelect }: ComparisonOptionProps) =
       type="button"
       onClick={onSelect}
       disabled={disabled}
-      className={`group flex h-full w-full flex-col items-center gap-6 rounded-xl border border-gray-800 bg-gray-950/60 p-6 text-left transition hover:border-blue-500 hover:bg-gray-900/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-950 sm:p-8 ${
+      className={`group flex h-full w-full flex-col items-center gap-4 rounded-xl border border-gray-800 bg-gray-950/60 p-5 text-left transition hover:border-blue-500 hover:bg-gray-900/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-950 sm:gap-6 sm:p-8 ${
         disabled ? 'cursor-not-allowed opacity-70 hover:border-gray-800 hover:bg-gray-950/60' : 'cursor-pointer'
       }`}
     >
@@ -64,11 +64,11 @@ const ComparisonOption = ({ item, disabled, onSelect }: ComparisonOptionProps) =
           alt={`${item.name} artwork`}
           width={342}
           height={513}
-          className="h-auto w-48 rounded-lg object-cover shadow-lg shadow-black/50 transition group-hover:scale-[1.02] sm:w-60"
-          sizes="(max-width: 640px) 12rem, (max-width: 1024px) 15rem, 20rem"
+          className="h-auto w-full max-w-[9.5rem] rounded-lg object-cover shadow-lg shadow-black/50 transition group-hover:scale-[1.02] sm:max-w-[12rem] md:max-w-[15rem]"
+          sizes="(max-width: 640px) 9.5rem, (max-width: 1024px) 15rem, 20rem"
         />
       ) : (
-        <div className="flex h-72 w-48 items-center justify-center rounded-lg border border-dashed border-gray-700 bg-gray-900 text-sm text-gray-400 sm:w-60">
+        <div className="flex h-72 w-full max-w-[9.5rem] items-center justify-center rounded-lg border border-dashed border-gray-700 bg-gray-900 text-sm text-gray-400 sm:max-w-[12rem] md:max-w-[15rem]">
           Artwork unavailable
         </div>
       )}
@@ -279,7 +279,7 @@ const ComparisonPage = ({ groupId }: ComparisonPageProps) => {
           </div>
         )}
 
-        <div className="grid flex-1 gap-6 sm:gap-8 md:grid-cols-2">
+        <div className="grid flex-1 grid-cols-2 gap-3 sm:gap-6 md:gap-8">
           {matchup?.itemA ? (
             <ComparisonOption
               item={matchup.itemA}
